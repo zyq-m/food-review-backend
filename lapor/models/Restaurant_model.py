@@ -1,8 +1,11 @@
 from ..config.db import db
+from sqlalchemy import text
 
 
 class Restaurant(db.Model):
-    restaurant_id = db.Column(db.String(255), primary_key=True)
+    restaurant_id = db.Column(
+        db.String(255), primary_key=True, default=text("uuid_short()")
+    )
     email = db.Column(db.String(255), db.ForeignKey("user.email"))
     restaurant_name = db.Column(db.String(255))
     description = db.Column(db.Text)
