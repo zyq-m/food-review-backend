@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+from datetime import timedelta
 
 from .config.db import db
 from .config.schema import ma
@@ -22,6 +23,8 @@ app.register_blueprint(user_route.bp)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root@localhost/food_review"
 app.config["SECRET_KEY"] = "your_strong_secret_key"
 app.config["JWT_SECRET_KEY"] = "your_jwt_secret_key"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
 
 # initialize the app with the extension
 db.init_app(app)
