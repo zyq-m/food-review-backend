@@ -15,6 +15,8 @@ class Restaurant(db.Model):
     phone_no = db.Column(db.String(12))
     website_link = db.Column(db.Text)
     restaurant_img = db.Column(db.JSON)
+    highlight = db.Column(db.JSON)
+    menu_img = db.Column(db.JSON)
     positive_review = db.Column(db.Integer)
     negative_review = db.Column(db.Integer)
     total_review = db.Column(db.Integer)

@@ -1,10 +1,16 @@
 from flask import Blueprint, request, jsonify, json
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from flask_jwt_extended import create_access_token
+
 from ..config.db import db
 
 # model
 from ..models.Role_model import Role
 from ..models.User_model import User
 from ..models.Restaurant_model import Restaurant
+
+# schema
+from ..schema.User_schema import user_schema
 
 bp = Blueprint("auth", __name__)
 
@@ -30,25 +36,36 @@ def sign_up_restaurant():
     data = json.loads(request.data)
 
     # do validation
-    user = User(
-        email=data["email"],
-        user_name=data["username"],
-        password=data["password"],
-        role_id=2,
-    )
-    db.session.add(user)
-    db.session.commit()
+    try:
+        user = User(
+            email=data["email"],
+            user_name=data["username"],
+            password=data["password"],
+            role_id=2,
+        )
+        db.session.add(user)
+        db.session.commit()
 
-    restaurant = Restaurant(
-        email=user.email,
-        restaurant_name=data["restaurant_name"],
-        category=data["category"],
-        phone_no=data["phone_no"],
-    )
-    db.session.add(restaurant)
-    db.session.commit()
+        restaurant = Restaurant(
+            email=user.email,
+            restaurant_name=data["restaurant_name"],
+            category=data["category"],
+            phone_no=data["phone_no"],
+        )
+        db.session.add(restaurant)
+        db.session.commit()
 
-    return jsonify({"message": "Successfully created"}), 201
+        return jsonify({"message": "Successfully created"}), 201
+    except IntegrityError as err:
+        db.session.rollback()
+        print(err)
+
+        return jsonify({"message": "Account existed"}), 500
+    except SQLAlchemyError as err:
+        db.session.rollback()
+        print(err)
+
+        return jsonify({"message": "Error"}), 500
 
 
 @bp.post("/login")
@@ -61,8 +78,10 @@ def login():
         return jsonify({"message": "Invalid credentials"}), 404
 
     # do role assignment, token creation and authorization
+    access_token = create_access_token(identity=user_schema.dump(user))
+    return jsonify(access_token=access_token)
 
-    return jsonify({"status": "created"}), 200
+    # return jsonify({"user": user_schema.dump(user)}), 200
 
 
 # @bp.delete("/logout")

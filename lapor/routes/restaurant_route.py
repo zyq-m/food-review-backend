@@ -1,4 +1,8 @@
 from flask import Blueprint, request, jsonify, json
+from flask_jwt_extended import (
+    jwt_required,
+)
+
 from ..config.db import db
 from ..schema.Restaurant_schema import restaurant_schema, restaurants_schema
 
@@ -8,6 +12,7 @@ bp = Blueprint("restaurant", __name__)
 
 
 @bp.get("/restaurant/<id>")
+@jwt_required()
 def get_restaurant_by_id(id):
     restaurant = Restaurant.query.filter_by(restaurant_id=id).first()
 
@@ -18,6 +23,7 @@ def get_restaurant_by_id(id):
 
 
 @bp.get("/restaurant")
+@jwt_required()
 def get_restaurant():
     restaurant = Restaurant.query.all()
 
@@ -27,21 +33,27 @@ def get_restaurant():
     return jsonify({"restaurant": restaurants_schema.dump(restaurant)}), 200
 
 
-@bp.get("/restaurant/category/<category>")
-def get_restaurant_category(category):
-    restaurant = Restaurant.query.filter(Restaurant.category == category).first()
+@bp.get("/restaurant/search")
+@jwt_required()
+def get_restaurant_by_query():
+    args = request.args
+    category = args.get("category")
+    name = args.get("name")
+
+    if category and name is not None:
+        restaurant = Restaurant.query.filter(
+            Restaurant.category == category, Restaurant.restaurant_img == name
+        ).all()
+
+    if category is not None:
+        restaurant = Restaurant.query.filter(Restaurant.category == category).all()
+
+    if name is not None:
+        restaurant = Restaurant.query.filter(
+            Restaurant.restaurant_name.like(f"%{name}%")
+        ).all()
 
     if not restaurant:
         return jsonify({"message": "Not found"}), 404
 
-    return jsonify({restaurant: restaurants_schema.dump(restaurant)}), 200
-
-
-@bp.get("/restaurant/query/<name>")
-def get_restaurant_by_name(name):
-    restaurant = Restaurant.query.filter(Restaurant.restaurant_name.like(f"%{name}%"))
-
-    if not restaurant:
-        return jsonify({"message": "Not found"}), 404
-
-    return jsonify({restaurant: restaurants_schema.dump(restaurant)}), 200
+    return jsonify({"restaurant": restaurants_schema.dump(restaurant)}), 200

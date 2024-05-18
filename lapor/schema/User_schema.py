@@ -7,7 +7,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         model = User
         include_fk = True
 
-        fields = ("email", "user_name", "role_id")
+        fields = ("email", "user_name", "role_id", "avatar")
 
 
 user_schema = UserSchema()
