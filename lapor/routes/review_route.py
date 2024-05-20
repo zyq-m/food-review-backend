@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify, json
 from flask_jwt_extended import jwt_required
 from ..config.db import db
@@ -49,6 +50,7 @@ def create_review():
             restaurant_id=data["restaurant_id"],
             email=data["email"],
             review_description=data["review"],
+            timestamp=datetime.now(),
         )
 
         db.session.add(review)
