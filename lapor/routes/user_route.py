@@ -38,30 +38,38 @@ def allowed_file(filename):
 def update_profile(username):
     user = User.query.filter_by(user_name=username).first()
 
+    # upload file
     if request.files:
         file = request.files["avatar"]
 
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
 
-            profile_path = current_app.config["PROFILE_PATH"]
-            file_to_save = os.path.join(profile_path, filename)
+            path = current_app.config["PROFILE_PATH"]
+            act_path = os.path.join("lapor", path)
+            img_path = os.path.join(path, filename)
+            img_path_to_save = os.path.join(act_path, filename)
 
             # check dir exist
-            if not os.path.exists(profile_path):
-                os.makedirs(profile_path)
+            if not os.path.exists(act_path):
+                os.makedirs(act_path)
 
             # check file exist
             if user.avatar:
-                old_file = os.path.join(user.avatar["src"])
+                old_file = os.path.join("lapor", user.avatar["src"])
                 os.remove(old_file)
 
-            file.save(file_to_save)
+            file.save(img_path_to_save)
 
-            user.avatar = {"src": file_to_save}
+            user.avatar = {"src": img_path}
             db.session.commit()
 
-            return jsonify({"message": "Profile avatar updated successfully"})
+            return jsonify(
+                {
+                    "message": "Profile avatar updated successfully",
+                    "avatar": user.avatar,
+                }
+            )
 
     if not user:
         return jsonify({"message": "Not found"}), 404
@@ -69,9 +77,10 @@ def update_profile(username):
     if request.data:
         data = json.loads(request.data)
         user.email = data["email"]
+        user.name = data["name"]
         db.session.commit()
 
-    return jsonify({"message": "Profile updated"}), 200
+    return jsonify({"message": "Profile updated", "user": user_schema.dump(user)}), 200
 
 
 @bp.put("/user/password")
