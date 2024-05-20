@@ -82,7 +82,7 @@ def edit_review(id):
     return jsonify({"message": "Review successfully updated"}), 200
 
 
-@bp.put("/review/delete/<id>")
+@bp.delete("/review/delete/<id>")
 @jwt_required()
 def delete_review(id):
     review = Review.query.filter_by(review_id=id).first()
