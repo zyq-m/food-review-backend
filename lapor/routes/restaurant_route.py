@@ -1,3 +1,4 @@
+from uuid import uuid1
 from flask import Blueprint, request, jsonify, json
 from flask_jwt_extended import (
     jwt_required,
@@ -57,3 +58,23 @@ def get_restaurant_by_query():
         return jsonify({"message": "Not found"}), 404
 
     return jsonify({"restaurant": restaurants_schema.dump(restaurant)}), 200
+
+
+@bp.get("/restaurant/category")
+# @jwt_required
+def get_restaurant_category():
+    query = (
+        Restaurant.query.add_column(Restaurant.category)
+        .with_entities(Restaurant.category)
+        .group_by(Restaurant.category)
+        .all()
+    )
+
+    if query is None:
+        return jsonify({"message": "Catergory not available"})
+
+    category = []
+    for item in query:
+        category.append({"id": uuid1(), "name": item.category})
+
+    return jsonify(category=category), 200
