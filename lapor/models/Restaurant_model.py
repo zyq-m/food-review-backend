@@ -20,3 +20,5 @@ class Restaurant(db.Model):
     positive_review = db.Column(db.Integer)
     negative_review = db.Column(db.Integer)
     total_review = db.Column(db.Integer)
+
+    reviews = db.relationship("Review", backref="restaurant")
