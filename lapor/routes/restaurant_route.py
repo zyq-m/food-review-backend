@@ -1,10 +1,9 @@
 from uuid import uuid1
-from flask import Blueprint, request, jsonify, json
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
     jwt_required,
 )
 
-from ..config.db import db
 from ..schema.Restaurant_schema import restaurant_schema, restaurants_schema
 
 from ..models.Restaurant_model import Restaurant
@@ -17,10 +16,25 @@ bp = Blueprint("restaurant", __name__)
 def get_restaurant_by_id(id):
     restaurant = Restaurant.query.filter_by(restaurant_id=id).first()
 
+    reviews = []
+    for item in restaurant.reviews:
+        reviews.append(
+            {
+                "review_id": item.review_id,
+                "email": item.email,
+                "review_description": item.review_description,
+                "timestamp": item.timestamp,
+                "review_sentiment": item.review_sentiment,
+            }
+        )
+
+    restaurant = restaurant_schema.dump(restaurant)
+    restaurant.update({"reviews": reviews})
+
     if not restaurant:
         return jsonify({"message": "Not found"}), 404
 
-    return jsonify({"restaurant": restaurant_schema.dump(restaurant)}), 200
+    return jsonify({"restaurant": restaurant}), 200
 
 
 @bp.get("/restaurant")
@@ -49,6 +63,9 @@ def get_restaurant_by_query():
     if category is not None:
         restaurant = Restaurant.query.filter(Restaurant.category == category).all()
 
+    if category is not None and category == "all":
+        restaurant = Restaurant.query.all()
+
     if name is not None:
         restaurant = Restaurant.query.filter(
             Restaurant.restaurant_name.like(f"%{name}%")
@@ -61,7 +78,7 @@ def get_restaurant_by_query():
 
 
 @bp.get("/restaurant/category")
-# @jwt_required
+@jwt_required()
 def get_restaurant_category():
     query = (
         Restaurant.query.add_column(Restaurant.category)
