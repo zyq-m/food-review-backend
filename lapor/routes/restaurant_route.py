@@ -1,11 +1,11 @@
 from uuid import uuid1
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, json, request, jsonify
 from flask_jwt_extended import (
     jwt_required,
 )
 
 from ..schema.Restaurant_schema import restaurant_schema, restaurants_schema
-
+from ..config.db import db
 from ..models.Restaurant_model import Restaurant
 
 bp = Blueprint("restaurant", __name__)
@@ -92,3 +92,36 @@ def get_restaurant_category():
         category.append({"id": uuid1(), "name": item.category})
 
     return jsonify(category=category), 200
+
+
+@bp.get("/my-restaurant/<email>")
+@jwt_required()
+def get_my_restaurant(email):
+    restaurant = Restaurant.query.filter_by(email=email).first()
+    restaurant = restaurant_schema.dump(restaurant)
+
+    if not restaurant:
+        return jsonify({"message": "Not found"}), 404
+
+    return jsonify({"restaurant": restaurant}), 200
+
+
+@bp.put("/my-restaurant/<email>")
+@jwt_required()
+def update_restaurant(email):
+    data = json.loads(request.data)
+    restaurant = Restaurant.query.filter_by(email=email).first()
+
+    if not restaurant:
+        return jsonify({"message": "Not found"}), 404
+
+    restaurant.restaurant_name = data["restaurant_name"]
+    restaurant.category = data["category"]
+    restaurant.phone_no = data["phone_no"]
+    restaurant.website_link = data["website_link"]
+    restaurant.location = data["location"]
+    restaurant.description = data["description"]
+
+    db.session.commit()
+
+    return jsonify({"message": "Success"}), 200
