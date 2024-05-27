@@ -53,7 +53,7 @@ def get_restaurant():
 def get_restaurant_by_query():
     args = request.args
     category = args.get("category")
-    name = args.get("name")
+    name = args.get("restaurant")
 
     if category and name is not None:
         restaurant = Restaurant.query.filter(
@@ -62,9 +62,6 @@ def get_restaurant_by_query():
 
     if category is not None:
         restaurant = Restaurant.query.filter(Restaurant.category == category).all()
-
-    if category is not None and category == "all":
-        restaurant = Restaurant.query.all()
 
     if name is not None:
         restaurant = Restaurant.query.filter(
