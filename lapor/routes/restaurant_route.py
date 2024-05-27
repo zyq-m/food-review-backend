@@ -63,9 +63,6 @@ def get_restaurant_by_query():
     if category is not None:
         restaurant = Restaurant.query.filter(Restaurant.category == category).all()
 
-    if category is not None and category == "all":
-        restaurant = Restaurant.query.all()
-
     if name is not None:
         restaurant = Restaurant.query.filter(
             Restaurant.restaurant_name.like(f"%{name}%")
