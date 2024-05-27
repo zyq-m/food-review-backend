@@ -53,7 +53,7 @@ def get_restaurant():
 def get_restaurant_by_query():
     args = request.args
     category = args.get("category")
-    name = args.get("name")
+    name = args.get("restaurant")
 
     if category and name is not None:
         restaurant = Restaurant.query.filter(
@@ -90,7 +90,7 @@ def get_restaurant_category():
     if query is None:
         return jsonify({"message": "Catergory not available"})
 
-    category = []
+    category = [{"id": uuid1(), "name": "all"}]
     for item in query:
         category.append({"id": uuid1(), "name": item.category})
 
